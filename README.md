@@ -1,2 +1,0 @@
-# Eltex
-My first repo.
