@@ -1,0 +1,119 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct Contact {
+    int number;
+    char firstName[50];
+    char lastName[50];
+    char email[50];
+    char messenger[50];
+    char workplace[50];
+    struct Contact *left;
+    struct Contact *right;
+};
+
+static struct Contact *root = NULL;
+
+struct Contact *create_contact(int number, char firstName[], char lastName[], char email[], char messenger[], char workplace[]) {
+    struct Contact *new_contact = (struct Contact *)malloc(sizeof(struct Contact));
+
+    new_contact->number = number;
+        strcpy(new_contact->firstName, firstName);
+    new_contact->firstName[sizeof(new_contact->firstName) - 1] = '\0';
+    
+    strcpy(new_contact->lastName, lastName);
+    new_contact->lastName[sizeof(new_contact->lastName) - 1] = '\0';
+    
+    strcpy(new_contact->email, email);
+    new_contact->email[sizeof(new_contact->email) - 1] = '\0';
+    
+    strcpy(new_contact->messenger, messenger);
+    new_contact->messenger[sizeof(new_contact->messenger) - 1] = '\0';
+    
+    strcpy(new_contact->workplace, workplace);
+    new_contact->workplace[sizeof(new_contact->workplace) - 1] = '\0';
+    
+    new_contact->left = NULL;
+    new_contact->right = NULL;
+
+    return new_contact;
+}
+
+void add_contact(struct Contact **root, struct Contact *new_contact) {
+    if (*root == NULL) {
+        *root = new_contact;
+    }
+    else {
+        if (new_contact->number < (*root)->number) {
+            add_contact(&((*root)->left), new_contact);
+        }
+        else {
+            add_contact(&((*root)->right), new_contact);
+        }
+    }
+}
+
+void display_contact(struct Contact *contact) {
+    if (contact != NULL) {
+        printf("Tree root\n");
+        printf("Number: %d, Name: %s %s, Email: %s, Messenger: %s, Workplace: %s\n",
+        contact->number, contact->firstName, contact->lastName, contact->email, contact->messenger, contact->workplace);
+    }
+}
+
+void display_menu() {
+    printf("\n--- Contact Management System ---\n");
+    printf("1. Add Contact\n");
+    printf("2. Display Contacts\n");
+    printf("3. Exit\n");
+    printf("Choose an option: ");
+}
+
+int main() {
+    int choice;
+    char firstName[50], lastName[50], email[50], messenger[50], workplace[50];
+    int number;
+
+    do {
+        display_menu();
+        scanf("%d", &choice);
+
+        switch(choice) {
+            case 1:
+                printf("Enter contact details:\n");
+                printf("Number: ");
+                scanf("%d", &number);
+                printf("First Name: ");
+                scanf("%s", firstName);
+                printf("Last Name: ");
+                scanf("%s", lastName);
+                printf("Email: ");
+                scanf("%s", email);
+                printf("Messenger: ");
+                scanf("%s", messenger);
+                printf("Workplace: ");
+                scanf("%s", workplace);
+
+                struct Contact *new_contact = create_contact(number, firstName, lastName, email, messenger, workplace);
+                add_contact(&root, new_contact);
+                break;
+
+            case 2:
+                printf("\n--- List of Contacts ---\n");
+                display_contact(root);
+                break;
+
+            case 3:
+                printf("Exiting program.\n");
+                break;
+
+            default:
+                printf("Invalid choice. Please try again.\n");
+                break;
+        }
+    } while (choice != 3);
+
+    return 0;
+}
+

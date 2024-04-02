@@ -1,0 +1,134 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+void access_mask() {
+    char permissions[10];
+    printf("Введите права доступа в буквенном или цифровом обозначении: ");
+    scanf("%s", permissions);
+
+    if (atoi(permissions) != 0) {  // Если введены цифры
+        int perm_int = atoi(permissions);
+        if (perm_int >= 0 && perm_int <= 777) {
+            printf("Битовое представление прав доступа: %o\n", perm_int);
+        } else {
+            printf("Некорректный ввод прав доступа.\n");
+        }
+    } else {  // Если введены буквы
+        int binary_mask = 0;
+        char *perm_str = permissions;
+        while (*perm_str) {
+            if (*perm_str == 'r') {
+                binary_mask += 4;
+            } else if (*perm_str == 'w') {
+                binary_mask += 2;
+            } else if (*perm_str == 'x') {
+                binary_mask += 1;
+            } else {
+                printf("Некорректный символ '%c' в правах доступа.\n", *perm_str);
+                return;
+            }
+            perm_str++;
+        }
+        if (strlen(permissions) == 9) {
+            printf("Битовое представление прав доступа: %o\n", binary_mask);
+        } else {
+            printf("Некорректное количество символов в правах доступа.\n");
+        }
+    }
+}
+
+void modify_permissions(char permissions[], char modification[]) {
+    for (int i = 0; i < strlen(modification); i += 2) {
+        if (modification[i] == '+' && modification[i + 1] == 'r') {
+            strcat(permissions, "r");
+        }
+        if (modification[i] == '+' && modification[i + 1] == 'w') {
+            strcat(permissions, "w");
+        }
+        if (modification[i] == '+' && modification[i + 1] == 'x') {
+            strcat(permissions, "x");
+        }
+        if (modification[i] == '-' && modification[i + 1] == 'r') {
+            char *p = strchr(permissions, 'r');
+            if (p) {
+                memmove(p, p + 1, strlen(p));
+            }
+        }
+        if (modification[i] == '-' && modification[i + 1] == 'w') {
+            char *p = strchr(permissions, 'w');
+            if (p) {
+                memmove(p, p + 1, strlen(p));
+            }
+        }
+        if (modification[i] == '-' && modification[i + 1] == 'x') {
+            char *p = strchr(permissions, 'x');
+            if (p) {
+                memmove(p, p + 1, strlen(p));
+            }
+        }
+    }
+}
+
+int main() {
+    char filename[100];
+    struct stat file_stat;
+    char ls_l_command[200];
+    char permissions[10];
+    char modification[20];
+    while(1){
+    printf("Введите имя файла: ");
+    scanf("%s", filename);
+
+    if (stat(filename, &file_stat) < 0) {
+        printf("Ошибка получения информации о файле.\n");
+        return 1;
+    }
+
+    printf("Буквенное представление прав доступа: ");
+    printf( (S_ISDIR(file_stat.st_mode)) ? "d" : "-");
+    printf( (file_stat.st_mode & S_IRUSR) ? "r" : "-");
+    printf( (file_stat.st_mode & S_IWUSR) ? "w" : "-");
+    printf( (file_stat.st_mode & S_IXUSR) ? "x" : "-");
+    printf( (file_stat.st_mode & S_IRGRP) ? "r" : "-");
+    printf( (file_stat.st_mode & S_IWGRP) ? "w" : "-");
+    printf( (file_stat.st_mode & S_IXGRP) ? "x" : "-");
+    printf( (file_stat.st_mode & S_IROTH) ? "r" : "-");
+    printf( (file_stat.st_mode & S_IWOTH) ? "w" : "-");
+    printf( (file_stat.st_mode & S_IXOTH) ? "x" : "-");
+    printf("\n");
+
+    printf("Цифровое представление прав доступа: %o\n", file_stat.st_mode & 0777);
+
+    access_mask();
+
+    printf("Введите команду модификации прав доступа (например, +r,-w,+x): ");
+    scanf("%s", modification);
+
+    strcpy(permissions, "");
+    strcat(permissions, (S_ISDIR(file_stat.st_mode)) ? "d" : "-");
+    modify_permissions(permissions, modification);
+
+    printf("Новое буквенное представление прав доступа: %s\n", permissions);
+
+    int new_binary_mask = 0;
+    char *perm_str = permissions;
+    while (*perm_str) {
+        if (*perm_str == 'r') {
+            new_binary_mask += 4;
+        } else if (*perm_str == 'w') {
+            new_binary_mask += 2;
+        } else if (*perm_str == 'x') {
+            new_binary_mask += 1;
+        }
+        perm_str++;
+    }
+    printf("Новое цифровое представление прав доступа: %o\n", new_binary_mask);
+
+    sprintf(ls_l_command, "ls -l %s", filename);
+    system(ls_l_command);
+    }
+    return 0;
+}

@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_DESTINATION_IP 0xFFFFFFFF
+#define MAX_SUBNET_MASK 32
+
+int isIPInSubnet(unsigned int destinationIP, unsigned int gatewayIP, unsigned int subnetMask) {
+    return (destinationIP & subnetMask) == (gatewayIP & subnetMask);
+}
+
+void intToIPAddress(unsigned int ip, char *ipAddress) {
+    sprintf(ipAddress, "%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 4) {
+        printf("Usage: %s gatewayIP subnetMask numPackets\n", argv[0]);
+        return 1;
+    }
+
+    unsigned int gatewayIP, subnetMask, numPackets;
+    sscanf(argv[1], "%u", &gatewayIP);
+    sscanf(argv[2], "%u", &subnetMask);
+    sscanf(argv[3], "%u", &numPackets);
+
+    unsigned int subnetMaskBit = MAX_DESTINATION_IP >> (MAX_SUBNET_MASK - subnetMask);
+
+    int packetsToSameSubnet = 0;
+    int packetsToDifferentSubnet = 0;
+
+    srand(123);
+
+    for (int i = 0; i < numPackets; i++) {
+        unsigned int destinationIP = rand(); 
+
+        if (isIPInSubnet(destinationIP, gatewayIP, subnetMaskBit)) {
+            packetsToSameSubnet++;
+        } else {
+            packetsToDifferentSubnet++;
+        }
+
+        char ipAddress[16];
+        intToIPAddress(destinationIP, ipAddress);
+        printf("Packet to destination IP: %s\n", ipAddress);
+    }
+
+    printf("\nStatistics:\n");
+    printf("Packets to same subnet: %d (%.2f%%)\n", packetsToSameSubnet, (float)packetsToSameSubnet / numPackets * 100);
+    printf("Packets to different subnet: %d (%.2f%%)\n", packetsToDifferentSubnet, (float)packetsToDifferentSubnet / numPackets * 100);
+
+    return 0;
+}
+

@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_QUEUE_SIZE 100
+
+struct Message {
+    int priority;
+    char content[50];
+};
+
+struct MessageQueue {
+    struct Message messages[MAX_QUEUE_SIZE];
+    int front;
+    int rear;
+};
+
+void initQueue(struct MessageQueue *queue) {
+    queue->front = -1;
+    queue->rear = -1;
+}
+
+int isQueueEmpty(struct MessageQueue *queue) {
+    return (queue->front == -1 && queue->rear == -1);
+}
+
+int isQueueFull(struct MessageQueue *queue) {
+    return (queue->rear + 1) % MAX_QUEUE_SIZE == queue->front;
+}
+
+void enqueue(struct MessageQueue *queue, int priority, char content[]) {
+    if (isQueueFull(queue)) {
+        printf("Queue is full. Cannot add more messages.\n");
+        return;
+    }
+    
+    struct Message newMessage;
+    newMessage.priority = priority;
+    strcpy(newMessage.content, content);
+
+    if (isQueueEmpty(queue)) {
+        queue->front = 0;
+        queue->rear = 0;
+        queue->messages[queue->rear] = newMessage;
+    } else {
+        int i = queue->rear;
+        while (i >= queue->front && queue->messages[i].priority < priority) {
+            queue->messages[(i + 1) % MAX_QUEUE_SIZE] = queue->messages[i];
+            i = (i - 1 + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
+        }
+        queue->messages[(i + 1) % MAX_QUEUE_SIZE] = newMessage;
+        queue->rear = (queue->rear + 1) % MAX_QUEUE_SIZE;
+    }
+    printf("Message with priority %d added to the queue\n", priority);
+}
+
+void dequeue(struct MessageQueue *queue) {
+    if (isQueueEmpty(queue)) {
+        printf("Queue is empty. No messages to dequeue.\n");
+        return;
+    }
+    
+    struct Message dequeuedMessage = queue->messages[queue->front];
+    printf("Dequeued message with priority %d and content: %s\n", dequeuedMessage.priority, dequeuedMessage.content);
+
+    if (queue->front == queue->rear) {
+        initQueue(queue);
+    } else {
+        queue->front = (queue->front + 1) % MAX_QUEUE_SIZE;
+    }
+}
+
+void dequeueByPriority(struct MessageQueue *queue, int minPriority) {
+    if (isQueueEmpty(queue)) {
+        printf("Queue is empty. No messages to dequeue.\n");
+        return;
+    }
+    
+    while (queue->front != -1 && queue->messages[queue->front].priority >= minPriority) {
+        dequeue(queue);
+    }
+}
+
+int main() {
+    struct MessageQueue queue;
+    initQueue(&queue);
+
+    enqueue(&queue, 10, "Message 1");
+    enqueue(&queue, 5, "Message 2");
+    enqueue(&queue, 8, "Message 3");
+
+    dequeue(&queue);
+    dequeueByPriority(&queue, 9);
+
+    return 0;
+}
+
