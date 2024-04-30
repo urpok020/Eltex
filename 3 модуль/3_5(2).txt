@@ -1,0 +1,28 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mqueue.h>
+
+#define MSG_SIZE 128
+
+int main() {
+    mqd_t mq;
+    char buffer[MSG_SIZE];
+    ssize_t bytes_read;
+
+    mq = mq_open("/my_queue", O_CREAT | O_RDONLY, 0644, NULL);
+    if (mq == (mqd_t)-1) {
+        perror("mq_open");
+        exit(1);
+    }
+
+    do {
+        bytes_read = mq_receive(mq, buffer, MSG_SIZE, NULL);
+        printf("Received message: %s\n", buffer);
+    } while (strcmp(buffer, "Finish") != 0);
+
+    mq_close(mq);
+    mq_unlink("/my_queue");
+
+    return 0;
+}

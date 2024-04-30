@@ -1,0 +1,34 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mqueue.h>
+
+#define MSG_SIZE 128
+
+int main() {
+    mqd_t mq;
+    struct mq_attr attr;
+    char buffer[MSG_SIZE];
+
+    attr.mq_flags = 0;
+    attr.mq_maxmsg = 10;
+    attr.mq_msgsize = MSG_SIZE;
+    attr.mq_curmsgs = 0;
+
+    mq = mq_open("/my_queue", O_CREAT | O_WRONLY, 0644, &attr);
+    if (mq == (mqd_t)-1) {
+        perror("mq_open");
+        exit(1);
+    }
+
+    strcpy(buffer, "Hello, this is the sender process");
+    mq_send(mq, buffer, strlen(buffer) + 1, 0);
+
+    // Отправляем сообщение с типом 255 для завершения обмена
+    strcpy(buffer, "Finish");
+    mq_send(mq, buffer, strlen(buffer) + 1, 0);
+
+    mq_close(mq);
+
+    return 0;
+}

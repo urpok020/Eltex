@@ -1,0 +1,31 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+#define MSG_SIZE 128
+
+struct msgbuf {
+    long mtype;
+    char mtext[MSG_SIZE];
+};
+
+int main() {
+    key_t key;
+    int msgid;
+    struct msgbuf message;
+
+    key = ftok("/tmp", 'A');
+    msgid = msgget(key, 0666 | IPC_CREAT);
+
+    do {
+        msgrcv(msgid, &message, sizeof(message.mtext), 0, 0);
+        printf("Received message: %s\n", message.mtext);
+    } while(message.mtype != 255);
+
+    msgctl(msgid, IPC_RMID, NULL);
+
+    return 0;
+}

@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+#define MAXINPUTSIZE 100
+
+int main() {
+    char inputMAX_INPUT_SIZE;
+    
+    while(1) {
+        printf("Enter program name and arguments: ");
+        fgets(input, sizeof(input), stdin);
+        inputstrcspn(input, "\n") = 0;  // remove newline character
+        
+        // parse input
+        char program_name = strtok(input, " ");
+        char programargs[10];
+        programargs0 = programname;
+        for(int i=1; i<10; i++) {
+            programargsi = strtok(NULL, " ");
+            if(programargs[i] == NULL) {
+                break;
+            }
+        }
+        
+        // execute program
+        pidt pid = fork();
+        
+        if(pid == 0) {
+            execvp(programname, programargs);
+            perror("execvp failed");
+            return 1;
+        } else if(pid < 0) {
+            perror("fork failed");
+            return 1;
+        } else {
+            wait(NULL);
+        }
+    }
+    
+    return 0;
+}
